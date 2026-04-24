@@ -1,0 +1,106 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>测试按住功能</title>
+<style>
+body{padding:50px;font-family:sans-serif}
+.btn{padding:15px 30px;background:#4CAF50;color:white;border:none;border-radius:8px;cursor:pointer;font-size:16px}
+.btn.pressed{background:#45a049;transform:scale(0.95)}
+.modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.8);justify-content:center;align-items:center}
+.modal.active{display:flex}
+.modal-content{background:white;padding:30px;border-radius:10px;color:#333}
+.hint{margin-top:20px;color:#666;font-size:14px}
+</style>
+</head>
+<body>
+<h1>测试按住按钮功能</h1>
+<button class="btn" id="testBtn">🔐 按住我查看</button>
+<p class="hint">按住按钮时会显示模态框，松开会隐藏</p>
+
+<div class="modal" id="testModal">
+  <div class="modal-content">
+    <h2>✅ 功能正常！</h2>
+    <p>你成功按住了按钮</p>
+    <p>松开即可关闭</p>
+  </div>
+</div>
+
+<div id="log" style="margin-top:30px;padding:15px;background:#f5f5f5;border-radius:5px">
+<h3>事件日志：</h3>
+<div id="logContent"></div>
+</div>
+
+<script>
+let pressed = false;
+
+function log(msg) {
+    const logDiv = document.getElementById('logContent');
+    const time = new Date().toLocaleTimeString();
+    logDiv.innerHTML += '<div>' + time + ' - ' + msg + '</div>';
+}
+
+document.addEventListener('DOMContentLoaded', function(){
+    log('DOM加载完成');
+    
+    const btn = document.getElementById('testBtn');
+    const modal = document.getElementById('testModal');
+    
+    if(!btn) {
+        log('❌ 错误：找不到按钮元素');
+        return;
+    }
+    if(!modal) {
+        log('❌ 错误：找不到模态框元素');
+        return;
+    }
+    
+    log('✅ 元素找到，绑定事件...');
+    
+    // 鼠标事件
+    btn.addEventListener('mousedown', function(e){
+        e.preventDefault();
+        pressed = true;
+        btn.classList.add('pressed');
+        modal.classList.add('active');
+        log('🖱️ 鼠标按下');
+    });
+    
+    btn.addEventListener('mouseup', function(){
+        pressed = false;
+        btn.classList.remove('pressed');
+        modal.classList.remove('active');
+        log('🖱️ 鼠标抬起');
+    });
+    
+    btn.addEventListener('mouseleave', function(){
+        if(pressed) {
+            pressed = false;
+            btn.classList.remove('pressed');
+            modal.classList.remove('active');
+            log('🖱️ 鼠标离开按钮');
+        }
+    });
+    
+    // 触摸事件
+    btn.addEventListener('touchstart', function(e){
+        e.preventDefault();
+        pressed = true;
+        btn.classList.add('pressed');
+        modal.classList.add('active');
+        log('📱 触摸开始');
+    });
+    
+    btn.addEventListener('touchend', function(e){
+        e.preventDefault();
+        pressed = false;
+        btn.classList.remove('pressed');
+        modal.classList.remove('active');
+        log('📱 触摸结束');
+    });
+    
+    log('✅ 事件绑定完成');
+});
+</script>
+</body>
+</html>

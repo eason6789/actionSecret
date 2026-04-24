@@ -1,0 +1,500 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行动代号 - 创想世界</title>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Noto+Sans+SC:wght@400;600;700&display=swap" rel="stylesheet">
+    <style>
+        :root{--bg:linear-gradient(135deg,#0f0c29,#302b63,#24243e);--primary:#00d4ff;--red:#ff4757;--blue:#3742fa;--text:#fff;--dim:rgba(255,255,255,0.55);--glass:rgba(255,255,255,0.05);--border:rgba(255,255,255,0.08)}
+        *{margin:0;padding:0;box-sizing:border-box}
+        body{font-family:'Inter','Noto Sans SC',sans-serif;background:var(--bg);min-height:100vh;padding:20px;color:var(--text)}
+        .container{max-width:700px;margin:0 auto}
+        h1{text-align:center;font-size:1.8rem;font-weight:700;margin-bottom:5px;letter-spacing:2px}
+        .back{position:absolute;top:20px;left:20px;color:var(--dim);text-decoration:none;font-size:14px}
+        .back:hover{color:var(--primary)}
+        .mode-select{display:flex;justify-content:center;gap:10px;margin-bottom:15px}
+        .mode-btn{padding:10px 24px;border:2px solid var(--border);border-radius:24px;background:var(--glass);color:var(--dim);cursor:pointer;transition:0.3s;font-size:14px}
+        .mode-btn.active{border-color:var(--primary);color:var(--primary);background:rgba(0,212,255,0.1)}
+        .mode-desc{text-align:center;color:var(--dim);font-size:14px;margin-bottom:15px;padding:12px;background:var(--glass);border-radius:10px}
+        .status-bar{display:flex;justify-content:center;gap:15px;margin-bottom:15px}
+        .status-item{background:var(--glass);padding:8px 20px;border-radius:20px;display:flex;gap:8px;font-size:14px}
+        .status-item .value{font-weight:600}
+        .status-item.red .value{color:var(--red)}
+        .status-item.blue .value{color:var(--blue)}
+        .clue-area{background:linear-gradient(135deg,rgba(0,212,255,0.1),rgba(168,85,247,0.1));border:1px solid var(--primary);padding:15px;border-radius:15px;margin-bottom:15px;text-align:center}
+        .clue-label{color:var(--dim);font-size:12px;margin-bottom:8px}
+        .clue-display{font-size:1.8rem;font-weight:700;margin:5px 0}
+        .clue-display .word{color:var(--primary)}
+        .clue-display .num{color:var(--red)}
+        .clue-turn{color:var(--dim);font-size:14px}
+        .board{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:15px}
+        .card{aspect-ratio:3/2;background:var(--glass);border:1px solid var(--border);border-radius:12px;display:flex;align-items:center;justify-content:center;cursor:pointer;transition:0.3s;color:#fff;font-weight:600;font-size:12px;padding:5px;text-align:center;word-break:break-all}
+        .card:hover:not(.revealed){transform:translateY(-4px);border-color:var(--primary);box-shadow:0 10px 30px rgba(0,0,0,0.3)}
+        .card.revealed{opacity:0.4}
+        .card.revealed.red{background:var(--red)!important;border-color:var(--red)!important}
+        .card.revealed.blue{background:var(--blue)!important;border-color:var(--blue)!important}
+        .card.revealed.neutral{background:#666!important}
+        .card.revealed.black{background:#000!important;border:2px solid var(--red)!important}
+        .score-board{display:flex;justify-content:center;gap:15px;margin-bottom:15px}
+        .score-card{background:var(--glass);padding:12px 30px;border-radius:15px;text-align:center}
+        .score-card .team{color:var(--dim);font-size:12px}
+        .score-card .score{font-size:1.6rem;font-weight:700}
+        .score-card.red .score{color:var(--red)}
+        .score-card.blue .score{color:var(--blue)}
+        .controls{display:flex;justify-content:center;gap:10px;flex-wrap:wrap}
+        .btn{padding:10px 18px;border:none;border-radius:10px;cursor:pointer;font-size:14px;font-weight:600;transition:0.3s;display:flex;align-items:center;gap:6px;user-select:none;-webkit-user-select:none}
+        .btn-primary{background:linear-gradient(135deg,#00d4ff,#a855f7);color:#fff}
+        .btn-secondary{background:var(--glass);border:1px solid var(--border);color:var(--text)}
+        .btn-success{background:linear-gradient(135deg,#00d9a5,#00b894);color:#fff}
+        .btn-secondary:active{background:rgba(255,255,255,0.15);transform:scale(0.98)}
+        .btn-secondary.pressed{background:rgba(0,212,255,0.2);border-color:var(--primary);transform:scale(0.98)}
+        .giver-input{background:var(--glass);padding:15px;border-radius:15px;margin-bottom:15px;display:none}
+        .giver-input.active{display:block}
+        .giver-input h3{margin-bottom:12px;font-size:15px}
+        .input-row{display:flex;gap:8px;margin-bottom:12px}
+        .input-row input{flex:1;padding:10px;background:rgba(255,255,255,0.08);border:1px solid var(--border);border-radius:8px;color:#fff;font-size:14px}
+        .modal{position:fixed;inset:0;background:rgba(0,0,0,0.85);z-index:100;display:none;align-items:center;justify-content:center;padding:20px;backdrop-filter:blur(5px)}
+        .modal.active{display:flex}
+        .modal-inner{background:#0f0f0f;border:1px solid var(--border);border-radius:20px;padding:24px;max-width:420px;width:100%;max-height:80vh;overflow-y:auto;position:relative}
+        .modal h2{text-align:center;margin-bottom:20px;font-size:1.2rem}
+        .modal-close{position:absolute;top:12px;right:12px;background:var(--glass);border:none;color:#fff;width:28px;height:28px;border-radius:50%;cursor:pointer;font-size:16px}
+        .form-group{margin-bottom:15px}
+        .form-group label{display:block;margin-bottom:6px;color:var(--dim);font-size:13px}
+        .form-group select,.form-group input,.form-group textarea{width:100%;padding:10px;background:var(--glass);border:1px solid var(--border);border-radius:8px;color:#fff;font-size:14px}
+        .form-group select option{background:#0f0f0f}
+        .form-group textarea{min-height:60px}
+        .form-group .hint{font-size:12px;color:var(--dim);margin-top:4px}
+        .modal .controls{margin-top:15px}
+        .master-board{display:grid;grid-template-columns:repeat(5,1fr);gap:4px}
+        .master-card{aspect-ratio:3/2;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:600;padding:3px;text-align:center;word-break:break-all}
+        .master-card.red{background:var(--red)}
+        .master-card.blue{background:var(--blue)}
+        .master-card.neutral{background:#666}
+        .master-card.black{background:#000;border:1px solid var(--red)}
+        .toast{position:fixed;bottom:20px;left:50%;transform:translateX(-50%) translateY(100px);background:linear-gradient(135deg,rgba(0,212,255,0.2),rgba(168,85,247,0.2));border:1px solid var(--primary);padding:10px 20px;border-radius:10px;transition:0.3s;z-index:200;font-size:14px}
+        .toast.show{transform:translateX(-50%) translateY(0)}
+        .hint-text{text-align:center;color:var(--dim);font-size:12px;margin-top:8px;animation:pulse 2s ease-in-out infinite}
+        @keyframes pulse{0%,100%{opacity:0.5}50%{opacity:1}}
+        @media(max-width:500px){.board{gap:5px}.card{font-size:9px}}
+    </style>
+</head>
+<body>
+<a href="index.html" class="back">← 返回</a>
+<div class="container">
+    <h1>行动代号</h1>
+    <div class="mode-select">
+        <button class="mode-btn active" id="guesserBtn" onclick="setMode('guesser')">猜词者</button>
+        <button class="mode-btn" id="giverBtn" onclick="setMode('giver')">出题者</button>
+    </div>
+    <div class="mode-desc" id="modeDesc">你是猜词者。你看不到卡牌颜色。</div>
+    <div class="status-bar">
+        <div class="status-item">回合: <span class="value" id="currentTeam">红方</span></div>
+        <div class="status-item">剩余: <span class="value" id="remaining">25</span></div>
+    </div>
+    <div class="clue-area" id="clueArea">
+        <div class="clue-label">当前线索</div>
+        <div class="clue-display"><span class="word" id="clueWord">---</span> <span class="num" id="clueNum"></span></div>
+        <div class="clue-turn" id="clueTurn">等待出题者...</div>
+    </div>
+    <div class="giver-input" id="giverInput">
+        <h3>出题者：输入线索</h3>
+        <div class="input-row">
+            <input type="text" id="clueInput" placeholder="词语 (例如: 动物)">
+            <input type="number" id="clueNumInput" placeholder="数量" min="1" max="8" style="width:60px">
+        </div>
+        <button class="btn btn-primary" onclick="submitClue()">提交</button>
+    </div>
+    <div class="board" id="board"></div>
+    <div class="score-board">
+        <div class="score-card red"><div class="team">红方</div><div class="score" id="redScore">9</div></div>
+        <div class="score-card blue"><div class="team">蓝方</div><div class="score" id="blueScore">8</div></div>
+    </div>
+    <div class="controls">
+        <button class="btn btn-primary" onclick="newGame()">🎲 新游戏</button>
+        <button class="btn btn-success" onclick="openAIWordsModal()">🤖 AI词库</button>
+        <button class="btn btn-secondary" id="masterBtn">🔐 密码本</button>
+        <button class="btn btn-secondary" onclick="openSettings()">⚙️ 设置</button>
+    </div>
+    <div class="hint-text">💡 按住「密码本」按钮查看，松手自动隐藏</div>
+</div>
+<div class="modal" id="masterModal">
+    <div class="modal-inner">
+        <h2>🔐 密码本（出题者专用）</h2>
+        <div class="master-board" id="masterBoard"></div>
+        <div class="hint-text" style="margin-top:15px">松开按钮自动关闭</div>
+    </div>
+</div>
+<div class="modal" id="aiModal">
+    <div class="modal-inner">
+        <button class="modal-close" onclick="closeAIModal()">×</button>
+        <h2>AI词库生成</h2>
+        <div class="form-group">
+            <label>主题</label>
+            <select id="aiTopic" onchange="handleTopicChange()">
+                <option value="">-- 选择主题 --</option>
+                <option value="relationship">亲密关系</option>
+                <option value="daily">日常生活</option>
+                <option value="emotion">情绪感受</option>
+                <option value="action">动作行为</option>
+                <option value="nature">自然物品</option>
+                <option value="food">美食餐饮</option>
+                <option value="travel">旅行探险</option>
+                <option value="tech">科技数码</option>
+                <option value="sports">运动健身</option>
+                <option value="art">艺术文化</option>
+                <option value="education">教育学习</option>
+                <option value="business">商业职场</option>
+                <option value="health">健康养生</option>
+                <option value="fashion">时尚美妆</option>
+                <option value="custom">自定义...</option>
+            </select>
+        </div>
+        <div class="form-group" id="customTopicGroup" style="display:none">
+            <label>自定义主题</label>
+            <input type="text" id="customTopic" placeholder="输入自定义主题">
+        </div>
+        <div class="form-group">
+            <label>DeepSeek API Key</label>
+            <input type="password" id="apiKey" placeholder="sk-xxxx" value="">
+            <p class="hint">首次使用需要填写，之后会自动保存</p>
+        </div>
+        <div class="form-group">
+            <label>混合比例</label>
+            <select id="mixRatio">
+                <option value="100">100% AI生成</option>
+                <option value="80">80% AI + 20% 默认</option>
+                <option value="60">60% AI + 40% 默认</option>
+                <option value="50" selected>50% AI + 50% 默认</option>
+                <option value="40">40% AI + 60% 默认</option>
+                <option value="20">20% AI + 80% 默认</option>
+                <option value="0">100% 默认词库</option>
+            </select>
+        </div>
+        <div class="controls">
+            <button class="btn btn-success" onclick="generateWords()" id="genBtn">🎯 生成词库</button>
+        </div>
+    </div>
+</div>
+<div class="modal" id="settingsModal">
+    <div class="modal-inner">
+        <button class="modal-close" onclick="closeSettings()">×</button>
+        <h2>⚙️ 设置</h2>
+        <div class="form-group">
+            <label>主题风格</label>
+            <select id="themeSel" onchange="changeTheme(this.value)">
+                <option value="default">深邃空间</option>
+                <option value="sunset">日落余晖</option>
+                <option value="forest">森林绿意</option>
+                <option value="pink">粉色浪漫</option>
+                <option value="ocean">海洋深蓝</option>
+            </select>
+        </div>
+        <div class="form-group">
+            <label>当前词库预览</label>
+            <textarea id="wordPreview" readonly style="min-height:120px"></textarea>
+            <p class="hint">词库数量: <span id="wordCount">0</span> 个</p>
+        </div>
+        <div class="controls">
+            <button class="btn btn-primary" onclick="saveSettings()">💾 保存设置</button>
+        </div>
+    </div>
+</div>
+<div class="toast" id="toast"></div>
+<script src="words.js"></script>
+<script>
+const presets={
+'relationship':['拥抱','亲吻','牵手','陪伴','信任','承诺','浪漫','约会','表白','告白','求婚','结婚','恋爱','暗恋','热恋','分手','复合','思念','想念','守护','宠爱','珍惜','依靠','理解','包容','温柔','甜蜜','幸福','永远','一生'],
+'daily':['起床','刷牙','洗脸','早餐','上班','下班','做饭','吃饭','洗碗','打扫','洗衣','晾衣','购物','买菜','遛狗','浇花','看书','追剧','睡觉','洗澡','化妆','护肤','梳头','穿衣','出门','回家','开门','锁门','倒垃圾','整理'],
+'emotion':['开心','快乐','兴奋','激动','感动','欣慰','满足','放松','平静','安心','期待','希望','惊喜','惊讶','好奇','疑惑','紧张','焦虑','担心','害怕','恐惧','愤怒','生气','失望','沮丧','难过','伤心','孤独','思念','后悔'],
+'action':['跑步','走路','跳跃','爬行','游泳','飞翔','坐下','站立','躺下','睡觉','吃饭','喝水','说话','唱歌','跳舞','写字','画画','阅读','思考','学习','工作','玩耍','休息','运动','旅行','购物','打扫','洗涤','烹饪','驾驶'],
+'nature':['太阳','月亮','星星','云朵','雨水','雪花','彩虹','闪电','大海','河流','湖泊','山峰','森林','草原','沙漠','岛屿','石头','泥土','花朵','树木','草地','果实','种子','叶子','树枝','蘑菇','露水','冰雹','霜冻','雾气'],
+'food':['米饭','面条','饺子','包子','馒头','面包','蛋糕','饼干','披萨','汉堡','三明治','沙拉','火锅','烧烤','炒菜','炖汤','粥','鸡蛋','牛奶','豆浆','咖啡','果汁','茶','水果','蔬菜','肉类','海鲜','甜点','零食','调料'],
+'travel':['背包','护照','航班','民宿','景区','导游','行程','自驾','观光','度假','签证','门票','酒店','海滩','雪山','古镇','露营','探险','摄影','纪念品','旅行日记','向导','自由行','机票','高铁'],
+'tech':['人工智能','算法','编程','数据','云计算','区块链','物联网','芯片','机器人','虚拟现实','无人机','5G','网络安全','大数据','半导体','创新','孵化器','智能家居','生物科技','可穿戴设备','开源','数字化','自动化','人机交互','量子计算'],
+'sports':['健身','瑜伽','马拉松','游泳','篮球','足球','羽毛球','网球','滑雪','骑行','热身','拉伸','教练','比赛','冠军','奖牌','运动员','裁判','训练','奥运会','俱乐部','健美操','跑步','跳绳','仰卧起坐'],
+'art':['绘画','雕塑','音乐','舞蹈','戏剧','电影','摄影','文学','诗歌','书法','画廊','博物馆','展览','创作','灵感','色彩','旋律','节奏','导演','演员','艺术家','作品','鉴赏','美学','文艺复兴'],
+'education':['学校','老师','学生','课程','教材','考试','教室','学习','知识','学位','图书馆','研究','培训','启蒙','素质','在线教育','学前教育','高等教育','职业教育','学术','论文','导师','奖学金','校园','自学'],
+'business':['市场','营销','品牌','管理','投资','融资','创业','公司','产品','服务','客户','销售','利润','竞争','战略','电商','零售','供应链','广告','企业家','董事会','商业模式','财报','并购','初创'],
+'health':['健康','医疗','营养','运动','睡眠','心理','体检','疫苗','疾病','预防','康复','中医','西医','免疫力','心理健康','冥想','饮食','作息','亚健康','慢性病','长寿','保健品','养生','锻炼','休养'],
+'fashion':['服装','设计','潮流','品牌','搭配','模特','走秀','奢侈品','珠宝','化妆品','发型','护肤','街拍','复古','极简','定制','面料','色彩','趋势','设计师','买手','时尚杂志','穿搭','配饰','潘通色']
+};
+const themes={default:'linear-gradient(135deg,#0f0c29,#302b63,#24243e)',sunset:'linear-gradient(135deg,#2d1f3d,#614385,#516395)',forest:'linear-gradient(135deg,#134e5e,#71b280)',pink:'linear-gradient(135deg,#3a1c71,#d76d77,#ffaf7b)',ocean:'linear-gradient(135deg,#0f2027,#203a43,#2c5364)'};
+let MEGA_WORDS=typeof window.MEGA_WORDS!=='undefined'?window.MEGA_WORDS:[];
+let aiWords=[],customWords=[],useCustom=false,currentTheme='default',savedApiKey='';
+let state={cards:[],red:9,blue:8,team:'red',revealed:0,clue:{word:'',num:0},guesses:0,over:false};
+let mode='guesser';
+let masterPressed=false;
+
+// 按住查看密码本
+document.addEventListener('DOMContentLoaded',function(){
+    const btn=document.getElementById('masterBtn');
+    const modal=document.getElementById('masterModal');
+    
+    btn.addEventListener('mousedown',function(e){
+        e.preventDefault();
+        masterPressed=true;
+        btn.classList.add('pressed');
+        modal.classList.add('active');
+    });
+    btn.addEventListener('mouseup',function(){
+        masterPressed=false;
+        btn.classList.remove('pressed');
+        modal.classList.remove('active');
+    });
+    btn.addEventListener('mouseleave',function(){
+        if(masterPressed){
+            masterPressed=false;
+            btn.classList.remove('pressed');
+            modal.classList.remove('active');
+        }
+    });
+    
+    btn.addEventListener('touchstart',function(e){
+        e.preventDefault();
+        masterPressed=true;
+        btn.classList.add('pressed');
+        modal.classList.add('active');
+    });
+    btn.addEventListener('touchend',function(e){
+        e.preventDefault();
+        masterPressed=false;
+        btn.classList.remove('pressed');
+        modal.classList.remove('active');
+    });
+    btn.addEventListener('touchcancel',function(){
+        masterPressed=false;
+        btn.classList.remove('pressed');
+        modal.classList.remove('active');
+    });
+    
+    modal.addEventListener('mousedown',function(e){e.stopPropagation();});
+    modal.addEventListener('touchstart',function(e){e.stopPropagation();});
+});
+
+function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
+function load(){
+    const s=localStorage.getItem('codenames_v6');
+    if(s){
+        const x=JSON.parse(s);
+        if(x.theme)currentTheme=x.theme;
+        if(x.ai)aiWords=x.ai.split('\n').filter(w=>w);
+        if(x.apiKey)savedApiKey=x.apiKey;
+        if(x.custom){
+            customWords=x.custom.split('\n').filter(w=>w);
+            document.getElementById('wordPreview').value=x.custom;
+            document.getElementById('wordCount').textContent=customWords.length;
+            if(customWords.length>=25)useCustom=true;
+        }
+        document.getElementById('themeSel').value=currentTheme;
+        document.getElementById('apiKey').value=savedApiKey;
+        document.body.style.background=themes[currentTheme];
+    }
+}
+function save(){
+    localStorage.setItem('codenames_v6',JSON.stringify({
+        theme:currentTheme,
+        ai:aiWords.join('\n'),
+        custom:customWords.join('\n'),
+        apiKey:savedApiKey
+    }));
+    toast('✅ 已保存');
+}
+function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
+function newGame(){
+    let pool=[];
+    const mix=parseInt(document.getElementById('mixRatio')?.value||50);
+    
+    // 优先使用超大词库
+    if(MEGA_WORDS.length>=25){
+        pool=shuffle([...MEGA_WORDS]).slice(0,25);
+    }else if(aiWords.length>=25&&mix>0){
+        const a=Math.floor(25*mix/100);
+        const d=25-a;
+        const defaultPool=MEGA_WORDS.length>0?MEGA_WORDS:Object.values(presets).flat();
+        pool=[...shuffle([...aiWords]).slice(0,a),...shuffle([...defaultPool]).slice(0,d)];
+        pool=shuffle(pool);
+    }else if(useCustom&&customWords.length>=25){
+        pool=shuffle([...customWords]).slice(0,25);
+    }else{
+        const defaultPool=MEGA_WORDS.length>0?MEGA_WORDS:Object.values(presets).flat();
+        pool=shuffle([...defaultPool]).slice(0,25);
+    }
+    
+    const w=pool.slice(0,25);
+    const c=shuffle([...Array(9).fill('red'),...Array(8).fill('blue'),...Array(7).fill('neutral'),...Array(1).fill('black')]);
+    state={cards:w.map((word,i)=>({word,color:c[i],revealed:false})),red:9,blue:8,team:'red',revealed:0,clue:{word:'---',num:0},guesses:0,over:false};
+    render();
+    renderMaster();
+    update();
+    toast('🎲 新游戏开始 - 红方先行');
+}
+function render(){document.getElementById('board').innerHTML=state.cards.map((c,i)=>'<div class="card '+(c.revealed?'revealed '+c.color:'')+'" onclick="clickCard('+i+')">'+c.word+'</div>').join('');}
+function renderMaster(){document.getElementById('masterBoard').innerHTML=state.cards.map(c=>'<div class="master-card '+c.color+'">'+c.word+'</div>').join('');}
+function update(){
+    document.getElementById('currentTeam').textContent=state.team==='red'?'红方':'蓝方';
+    document.getElementById('currentTeam').style.color=state.team==='red'?'var(--red)':'var(--blue)';
+    document.getElementById('remaining').textContent=25-state.revealed;
+    document.getElementById('redScore').textContent=state.red;
+    document.getElementById('blueScore').textContent=state.blue;
+    document.getElementById('clueWord').textContent=state.clue.word;
+    document.getElementById('clueNum').textContent=state.clue.num>0?state.clue.num:'';
+    document.getElementById('clueTurn').textContent=state.guesses>0?'剩余猜测: '+state.guesses:'等待出题者...';
+}
+function clickCard(i){
+    if(state.over)return;
+    const c=state.cards[i];
+    if(c.revealed)return;
+    c.revealed=true;
+    state.revealed++;
+    if(state.guesses>0)state.guesses--;
+    if(c.color==='black'){
+        state.over=true;
+        state.cards.forEach(x=>x.revealed=true);
+        render();
+        toast('💣 触雷！'+(state.team==='red'?'蓝方':'红方')+'获胜！');
+        return;
+    }
+    if(c.color==='red'){
+        state.red--;
+        if(state.team==='red'){
+            toast(state.guesses>0?'✅ 正确！继续':'✅ 正确！回合结束');
+        }else{
+            toast('❌ 对方的词！回合结束');
+            state.guesses=0;
+        }
+    }else if(c.color==='blue'){
+        state.blue--;
+        if(state.team==='blue'){
+            toast(state.guesses>0?'✅ 正确！继续':'✅ 正确！回合结束');
+        }else{
+            toast('❌ 对方的词！回合结束');
+            state.guesses=0;
+        }
+    }else{
+        toast('⚪ 中立词！回合结束');
+        state.guesses=0;
+    }
+    if(state.red===0){
+        state.over=true;
+        state.cards.forEach(x=>x.revealed=true);
+        render();
+        toast('🎉 红方获胜！');
+        return;
+    }
+    if(state.blue===0){
+        state.over=true;
+        state.cards.forEach(x=>x.revealed=true);
+        render();
+        toast('🎉 蓝方获胜！');
+        return;
+    }
+    if(state.guesses===0&&!state.over)switchTeam();
+    render();
+    update();
+}
+function switchTeam(){
+    state.team=state.team==='red'?'blue':'red';
+    state.clue={word:'---',num:0};
+    state.guesses=0;
+    toast('🔄 切换到 '+(state.team==='red'?'红方':'蓝方'));
+    update();
+}
+function setMode(m){
+    mode=m;
+    document.getElementById('guesserBtn').classList.toggle('active',m==='guesser');
+    document.getElementById('giverBtn').classList.toggle('active',m==='giver');
+    document.getElementById('modeDesc').textContent=m==='guesser'?'你是猜词者。看不到卡牌颜色。':'你是出题者。按住「密码本」查看答案。';
+    document.getElementById('clueArea').style.display=m==='guesser'?'block':'none';
+    document.getElementById('giverInput').classList.toggle('active',m==='giver');
+}
+function submitClue(){
+    const w=document.getElementById('clueInput').value.trim();
+    const n=parseInt(document.getElementById('clueNumInput').value);
+    if(!w||!n||n<1||n>8){toast('⚠️ 请输入词语和1-8的数字');return;}
+    state.clue={word:w,num:n};
+    state.guesses=n+1;
+    setMode('guesser');
+    document.getElementById('clueInput').value='';
+    document.getElementById('clueNumInput').value='';
+    toast('💡 线索已提交: '+w+' '+n);
+    update();
+}
+function openAIWordsModal(){document.getElementById('aiModal').classList.add('active');}
+function closeAIModal(){document.getElementById('aiModal').classList.remove('active');}
+function openSettings(){
+    document.getElementById('wordPreview').value=MEGA_WORDS.length>0?MEGA_WORDS.slice(0,50).join('\n')+'\\n...(共'+MEGA_WORDS.length+'个词)':customWords.join('\n');
+    document.getElementById('wordCount').textContent=MEGA_WORDS.length>0?MEGA_WORDS.length:customWords.length;
+    document.getElementById('settingsModal').classList.add('active');
+}
+function closeSettings(){document.getElementById('settingsModal').classList.remove('active');}
+function handleTopicChange(){
+    const v=document.getElementById('aiTopic').value;
+    document.getElementById('customTopicGroup').style.display=v==='custom'?'block':'none';
+    if(presets[v]){
+        aiWords=presets[v];
+        toast('✅ 已选择主题: '+v);
+    }
+}
+function changeTheme(t){currentTheme=t;document.body.style.background=themes[t];}
+function saveSettings(){save();closeSettings();}
+async function generateWords(){
+    const topic=document.getElementById('aiTopic').value;
+    const custom=document.getElementById('customTopic').value;
+    const apiKey=document.getElementById('apiKey').value.trim();
+    if(!topic){toast('⚠️ 请选择主题');return;}
+    let words=[];
+    if(topic==='custom'){
+        if(!custom){toast('⚠️ 请输入自定义主题');return;}
+        if(!apiKey){toast('⚠️ 请输入API Key');return;}
+        document.getElementById('genBtn').innerHTML='⏳ 生成中...';
+        document.getElementById('genBtn').disabled=true;
+        try{
+            const res=await fetch('https://api.deepseek.com/v1/chat/completions',{
+                method:'POST',
+                headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},
+                body:JSON.stringify({
+                    model:'deepseek-chat',
+                    messages:[{role:'user',content:'生成25个与"'+custom+'"相关的中文词语，用于猜词游戏。每行一个词，1-4个字为宜。'}],
+                    max_tokens:500
+                })
+            });
+            const data=await res.json();
+            if(data.choices){
+                words=data.choices[0].message.content.split('\n').map(w=>w.trim().replace(/^\d+[\.\、]/,'')).filter(w=>w&&w.length<=6);
+                savedApiKey=apiKey;
+            }else if(data.error){
+                toast('❌ API错误: '+data.error.message);
+                document.getElementById('genBtn').innerHTML='🎯 生成词库';
+                document.getElementById('genBtn').disabled=false;
+                return;
+            }
+        }catch(e){
+            toast('❌ 网络错误: '+e.message);
+            document.getElementById('genBtn').innerHTML='🎯 生成词库';
+            document.getElementById('genBtn').disabled=false;
+            return;
+        }
+    }else if(presets[topic]){
+        words=presets[topic];
+    }
+    if(words.length>=25){
+        aiWords=words.slice(0,30);
+        customWords=aiWords;
+        useCustom=true;
+        document.getElementById('wordPreview').value=aiWords.join('\n');
+        document.getElementById('wordCount').textContent=aiWords.length;
+        save();
+        closeAIModal();
+        toast('✅ 词库生成成功！共'+aiWords.length+'个词');
+    }else{
+        toast('❌ 词语数量不足(需要至少25个)');
+    }
+    document.getElementById('genBtn').innerHTML='🎯 生成词库';
+    document.getElementById('genBtn').disabled=false;
+}
+load();
+newGame();
+</script>
+</body>
+</html>

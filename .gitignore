@@ -1,0 +1,16 @@
+# Backup files
+*.bak
+*.backup
+*.backup_*
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log

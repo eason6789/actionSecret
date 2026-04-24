@@ -1,0 +1,143 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>行动代号 - 调试版</title>
+    <style>
+        body{font-family:sans-serif;padding:20px;background:#1a1a2e;color:#fff}
+        .btn{padding:15px 30px;background:#0f3460;color:#fff;border:2px solid #16213e;border-radius:10px;cursor:pointer;font-size:16px;margin:10px}
+        .btn.pressed{background:#e94560;border-color:#e94560;transform:scale(0.95)}
+        .modal{display:none;position:fixed;top:0;left:0;width:100%;height:100%;background:rgba(0,0,0,0.9);justify-content:center;align-items:center}
+        .modal.active{display:flex}
+        .modal-content{background:#16213e;padding:40px;border-radius:15px;max-width:500px}
+        .log{margin-top:20px;padding:15px;background:#0f3460;border-radius:8px;max-height:300px;overflow-y:auto;font-size:12px;font-family:monospace}
+        .log-item{padding:5px;border-bottom:1px solid #1a1a2e}
+        .success{color:#00d9a5}
+        .error{color:#e94560}
+        .info{color:#00d4ff}
+    </style>
+</head>
+<body>
+<h1>🔍 密码本功能调试</h1>
+<p>请按住下面的按钮：</p>
+<button class="btn" id="masterBtn">🔐 按住查看密码本</button>
+
+<div class="modal" id="masterModal">
+    <div class="modal-content">
+        <h2>✅ 密码本已显示！</h2>
+        <p>功能正常工作</p>
+        <p>松开按钮即可关闭</p>
+    </div>
+</div>
+
+<div class="log" id="logArea">
+    <h3>📋 事件日志：</h3>
+    <div id="logContent"></div>
+</div>
+
+<script>
+let masterPressed = false;
+let logCount = 0;
+
+function log(msg, type = 'info') {
+    const logDiv = document.getElementById('logContent');
+    const time = new Date().toLocaleTimeString();
+    const className = type === 'success' ? 'success' : type === 'error' ? 'error' : 'info';
+    logDiv.innerHTML = '<div class="log-item ' + className + '">' + (++logCount) + '. [' + time + '] ' + msg + '</div>' + logDiv.innerHTML;
+}
+
+log('页面开始加载...', 'info');
+
+window.addEventListener('load', function() {
+    log('✅ Load事件触发', 'success');
+    
+    const btn = document.getElementById('masterBtn');
+    const modal = document.getElementById('masterModal');
+    
+    if (!btn) {
+        log('❌ 错误：找不到按钮元素 #masterBtn', 'error');
+        return;
+    } else {
+        log('✅ 找到按钮元素', 'success');
+    }
+    
+    if (!modal) {
+        log('❌ 错误：找不到模态框元素 #masterModal', 'error');
+        return;
+    } else {
+        log('✅ 找到模态框元素', 'success');
+    }
+    
+    log('开始绑定事件...', 'info');
+    
+    // 鼠标按下
+    btn.addEventListener('mousedown', function(e) {
+        e.preventDefault();
+        masterPressed = true;
+        btn.classList.add('pressed');
+        modal.classList.add('active');
+        log('🖱️ mousedown 触发 - 密码本已显示', 'success');
+    });
+    
+    // 鼠标抬起
+    btn.addEventListener('mouseup', function() {
+        masterPressed = false;
+        btn.classList.remove('pressed');
+        modal.classList.remove('active');
+        log('🖱️ mouseup 触发 - 密码本已隐藏', 'success');
+    });
+    
+    // 鼠标离开按钮
+    btn.addEventListener('mouseleave', function() {
+        if (masterPressed) {
+            masterPressed = false;
+            btn.classList.remove('pressed');
+            modal.classList.remove('active');
+            log('🖱️ mouseleave 触发 - 密码本已隐藏', 'success');
+        }
+    });
+    
+    // 触摸开始
+    btn.addEventListener('touchstart', function(e) {
+        e.preventDefault();
+        masterPressed = true;
+        btn.classList.add('pressed');
+        modal.classList.add('active');
+        log('📱 touchstart 触发 - 密码本已显示', 'success');
+    });
+    
+    // 触摸结束
+    btn.addEventListener('touchend', function(e) {
+        e.preventDefault();
+        masterPressed = false;
+        btn.classList.remove('pressed');
+        modal.classList.remove('active');
+        log('📱 touchend 触发 - 密码本已隐藏', 'success');
+    });
+    
+    // 触摸取消
+    btn.addEventListener('touchcancel', function() {
+        masterPressed = false;
+        btn.classList.remove('pressed');
+        modal.classList.remove('active');
+        log('📱 touchcancel 触发 - 密码本已隐藏', 'success');
+    });
+    
+    log('✅ 所有事件已绑定完成', 'success');
+    log('💡 现在请按住按钮测试...', 'info');
+    
+    // 防止模态框内部点击关闭
+    modal.addEventListener('mousedown', function(e) {
+        e.stopPropagation();
+    });
+    
+    modal.addEventListener('touchstart', function(e) {
+        e.stopPropagation();
+    });
+});
+
+log('脚本加载完成，等待页面完全加载...', 'info');
+</script>
+</body>
+</html>
