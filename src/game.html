@@ -138,16 +138,16 @@
                 <option value="business">商业</option>
                 <option value="health">健康</option>
                 <option value="fashion">时尚</option>
+                <option value="relation">亲密关系</option>
+                <option value="romance">两性情感</option>
+                <option value="movie">影视娱乐</option>
+                <option value="daily">日常生活</option>
                 <option value="custom">自定义...</option>
             </select>
         </div>
         <div class="form-group" id="customTopicGroup" style="display:none">
             <label>自定义主题</label>
             <input type="text" id="customTopic" placeholder="输入主题">
-        </div>
-        <div class="form-group">
-            <label>DeepSeek API Key</label>
-            <input type="password" id="apiKey" placeholder="sk-xxxx">
         </div>
         <div class="form-group">
             <label>混合比例</label>
@@ -201,7 +201,11 @@ const presets={
 'education':['学校','老师','学生','课程','教材','考试','教室','学习','知识','学位','图书馆','研究','培训','启蒙','素质','在线教育','学前教育','高等教育','职业教育','学术','论文','导师','奖学金','校园','自学'],
 'business':['市场','营销','品牌','管理','投资','融资','创业','公司','产品','服务','客户','销售','利润','竞争','战略','电商','零售','供应链','广告','企业家','董事会','商业模式','财报','并购','初创'],
 'health':['健康','医疗','营养','运动','睡眠','心理','体检','疫苗','疾病','预防','康复','中医','西医','免疫力','心理健康','瑜伽','冥想','饮食','作息','亚健康','慢性病','长寿','健身','保健品','体检'],
-'fashion':['服装','设计','潮流','品牌','搭配','模特','走秀','奢侈品','珠宝','化妆品','发型','护肤','街拍','复古','极简','定制','面料','色彩','趋势','设计师','买手','时尚杂志','穿搭','配饰','潘通色']
+'fashion':['服装','设计','潮流','品牌','搭配','模特','走秀','奢侈品','珠宝','化妆品','发型','护肤','街拍','复古','极简','定制','面料','色彩','趋势','设计师','买手','时尚杂志','穿搭','配饰','潘通色'],
+'relation':['闺蜜','知己','夫妻','恋人','伴侣','默契','信任','陪伴','理解','包容','争吵','和好','浪漫','惊喜','约会','牵手','拥抱','接吻','表白','婚礼','蜜月','承诺','依靠','思念','异地'],
+'romance':['暧昧','心动','初恋','暗恋','告白','追求','吃醋','撒娇','冷战','分手','复合','前任','相亲','网恋','异地恋','偶遇','缘分','情书','玫瑰','烛光','二人世界','安全感','温柔','深情','宠爱'],
+'movie':['票房','影帝','导演','剧本','镜头','特效','配乐','电影票','预告片','首映','贺岁片','悬疑','喜剧','动画','科幻片','爱情片','纪录片','好莱坞','票房','奥斯卡','电影节','字幕','配音','剧组','杀青'],
+'daily':['闹钟','早餐','通勤','地铁','外卖','加班','周末','赖床','家务','快递','网购','打卡','开会','摸鱼','午休','下班','追剧','夜宵','健身','理发','逛街','囤货','收纳','搬家','AA制']
 };
 const defaults=['苹果','香蕉','电脑','手机','汽车','飞机','太阳','月亮','星星','海洋','山脉','河流','森林','沙漠','城市','乡村','学校','医院','公园','商场','音乐','电影','书籍','绘画','舞蹈','足球','篮球','游泳','跑步','骑行','咖啡','茶','面包','蛋糕','巧克力','冰激凌','披萨','寿司','火锅','烧烤','春天','夏天','秋天','冬天','雨','雪','风','雷','彩虹','云','猫','狗','兔子','老虎','狮子','大象','长颈鹿','熊猫','企鹅','海豚'];
 const themes={default:'linear-gradient(135deg,#0f0c29,#302b63,#24243e)',sunset:'linear-gradient(135deg,#2d1f3d,#614385,#516395)',forest:'linear-gradient(135deg,#134e5e,#71b280)',pink:'linear-gradient(135deg,#3a1c71,#d76d77,#ffaf7b)',ocean:'linear-gradient(135deg,#0f2027,#203a43,#2c5364)'};
@@ -229,7 +233,7 @@ function closeSettings(){document.getElementById('settingsModal').classList.remo
 function handleTopicChange(){const v=document.getElementById('aiTopic').value;document.getElementById('customTopicGroup').style.display=v==='custom'?'block':'none';if(presets[v]){aiWords=presets[v];toast('已选择: '+v);}}
 function changeTheme(t){currentTheme=t;document.body.style.background=themes[t];}
 function saveSettings(){save();closeSettings();}
-async function generateWords(){const topic=document.getElementById('aiTopic').value;const custom=document.getElementById('customTopic').value;const apiKey=document.getElementById('apiKey').value;if(!apiKey){toast('请输入API Key');return;}let words=[];if(topic==='custom'){if(!custom){toast('请输入主题');return;}document.getElementById('genBtn').innerHTML='生成中...';document.getElementById('genBtn').disabled=true;try{const res=await fetch('https://api.deepseek.com/v1/chat/completions',{method:'POST',headers:{'Content-Type':'application/json','Authorization':'Bearer '+apiKey},body:JSON.stringify({model:'deepseek-chat',messages:[{role:'user',content:'Generate 25 Chinese words related to "'+custom+'" for a board game. One word per line.'}],max_tokens:500})});const data=await res.json();if(data.choices){words=data.choices[0].message.content.split('\n').map(w=>w.trim().replace(/^\d+\./,'')).filter(w=>w);}}catch(e){toast('错误: '+e.message);}}else if(presets[topic]){words=presets[topic];}else{toast('请选择主题');return;}if(words.length>=25){aiWords=words.slice(0,25);customWords=aiWords;useCustom=true;document.getElementById('wordPreview').value=aiWords.join('\n');document.getElementById('wordCount').textContent=aiWords.length;save();closeAIModal();toast('生成成功!');}else{toast('需要25个以上词语');}document.getElementById('genBtn').innerHTML='生成';document.getElementById('genBtn').disabled=false;}
+async function generateWords(){const topic=document.getElementById('aiTopic').value;const custom=document.getElementById('customTopic').value;let words=[];if(topic==='custom'){if(!custom){toast('请输入主题');return;}document.getElementById('genBtn').innerHTML='生成中...';document.getElementById('genBtn').disabled=true;try{const res=await fetch('/api/generate-words',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:custom})});const data=await res.json();if(data.words&&data.words.length>0){words=data.words;}else{toast('生成失败: '+(data.error||'未知错误'));}}catch(e){toast('请求失败: '+e.message);}}else if(presets[topic]){words=presets[topic];}else{toast('请选择主题');return;}if(words.length>=25){aiWords=words.slice(0,25);customWords=aiWords;useCustom=true;document.getElementById('wordPreview').value=aiWords.join('\n');document.getElementById('wordCount').textContent=aiWords.length;save();closeAIModal();toast('生成成功!');}else{toast('需要25个以上词语');}document.getElementById('genBtn').innerHTML='生成';document.getElementById('genBtn').disabled=false;}
 load();newGame();
 </script>
 </body>

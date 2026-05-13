@@ -14,3 +14,7 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Go binaries
+backend/codenames-backend
+backend/codenames-backend-linux
