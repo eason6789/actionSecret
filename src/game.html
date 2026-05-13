@@ -149,17 +149,6 @@
             <label>自定义主题</label>
             <input type="text" id="customTopic" placeholder="输入主题">
         </div>
-        <div class="form-group">
-            <label>混合比例</label>
-            <select id="mixRatio">
-                <option value="100">100% AI</option>
-                <option value="80">80% AI + 20% Default</option>
-                <option value="60">60% AI + 40% Default</option>
-                <option value="50" selected>50% AI + 50% Default</option>
-                <option value="40">40% AI + 60% Default</option>
-                <option value="20">20% AI + 80% Default</option>
-            </select>
-        </div>
         <div class="controls">
             <button class="btn btn-success" onclick="generateWords()" id="genBtn">生成</button>
         </div>
@@ -209,15 +198,15 @@ const presets={
 };
 const defaults=['苹果','香蕉','电脑','手机','汽车','飞机','太阳','月亮','星星','海洋','山脉','河流','森林','沙漠','城市','乡村','学校','医院','公园','商场','音乐','电影','书籍','绘画','舞蹈','足球','篮球','游泳','跑步','骑行','咖啡','茶','面包','蛋糕','巧克力','冰激凌','披萨','寿司','火锅','烧烤','春天','夏天','秋天','冬天','雨','雪','风','雷','彩虹','云','猫','狗','兔子','老虎','狮子','大象','长颈鹿','熊猫','企鹅','海豚'];
 const themes={default:'linear-gradient(135deg,#0f0c29,#302b63,#24243e)',sunset:'linear-gradient(135deg,#2d1f3d,#614385,#516395)',forest:'linear-gradient(135deg,#134e5e,#71b280)',pink:'linear-gradient(135deg,#3a1c71,#d76d77,#ffaf7b)',ocean:'linear-gradient(135deg,#0f2027,#203a43,#2c5364)'};
-let aiWords=[],customWords=[],useCustom=false,currentTheme='default';
+let aiWords=[],currentTheme='default';
 let state={cards:[],red:9,blue:8,team:'red',revealed:0,clue:{word:'',num:0},guesses:0,over:false};
 let mode='guesser';
 
 function toast(m){const t=document.getElementById('toast');t.textContent=m;t.classList.add('show');setTimeout(()=>t.classList.remove('show'),3000);}
-function load(){const s=localStorage.getItem('codenames_v5');if(s){const x=JSON.parse(s);if(x.theme)currentTheme=x.theme;if(x.ai)aiWords=x.ai.split('\n').filter(w=>w);if(x.custom){customWords=x.custom.split('\n').filter(w=>w);document.getElementById('wordPreview').value=x.custom;document.getElementById('wordCount').textContent=customWords.length;if(customWords.length>=25)useCustom=true;}document.getElementById('themeSel').value=currentTheme;document.body.style.background=themes[currentTheme];}}
-function save(){localStorage.setItem('codenames_v5',JSON.stringify({theme:currentTheme,ai:aiWords.join('\n'),custom:customWords.join('\n')}));toast('已保存');}
+function load(){const s=localStorage.getItem('codenames_v5');if(s){const x=JSON.parse(s);if(x.theme)currentTheme=x.theme;if(x.ai){aiWords=x.ai.split('\n').filter(w=>w);document.getElementById('wordPreview').value=x.ai;document.getElementById('wordCount').textContent=aiWords.length;}document.getElementById('themeSel').value=currentTheme;document.body.style.background=themes[currentTheme];}}
+function save(){localStorage.setItem('codenames_v5',JSON.stringify({theme:currentTheme,ai:aiWords.join('\n')}));toast('已保存');}
 function shuffle(a){for(let i=a.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[a[i],a[j]]=[a[j],a[i]];}return a;}
-function newGame(){let pool=[];const mix=parseInt(document.getElementById('mixRatio')?.value||50);if(aiWords.length>=25&&mix>0){const a=Math.floor(25*mix/100);const d=25-a;pool=[...shuffle([...aiWords]).slice(0,a),...shuffle([...defaults]).slice(0,d)];pool=shuffle(pool);}else if(useCustom&&customWords.length>=25){pool=shuffle([...customWords]);}else{pool=shuffle([...defaults]);}const w=pool.slice(0,25);const c=shuffle([...Array(9).fill('red'),...Array(8).fill('blue'),...Array(7).fill('neutral'),...Array(1).fill('black')]);state={cards:w.map((word,i)=>({word,color:c[i],revealed:false})),red:9,blue:8,team:'red',revealed:0,clue:{word:'---',num:0},guesses:0,over:false};render();renderMaster();update();toast('新游戏 - 红方先行');}
+function newGame(useAI){let pool;if(useAI&&aiWords.length>=25){pool=shuffle([...aiWords]);}else{pool=shuffle([...defaults]);}const w=pool.slice(0,25);const c=shuffle([...Array(9).fill('red'),...Array(8).fill('blue'),...Array(7).fill('neutral'),...Array(1).fill('black')]);state={cards:w.map((word,i)=>({word,color:c[i],revealed:false})),red:9,blue:8,team:'red',revealed:0,clue:{word:'---',num:0},guesses:0,over:false};render();renderMaster();update();toast('新游戏 - 红方先行');}
 function render(){document.getElementById('board').innerHTML=state.cards.map((c,i)=>'<div class="card '+(c.revealed?'revealed '+c.color:'')+  '" onclick="clickCard('+i+')">'+c.word+'</div>').join('');}
 function renderMaster(){document.getElementById('masterBoard').innerHTML=state.cards.map(c=>'<div class="master-card '+c.color+'">'+c.word+'</div>').join('');}
 function update(){document.getElementById('currentTeam').textContent=state.team==='red'?'红方':'蓝方';document.getElementById('currentTeam').style.color=state.team==='red'?'var(--red)':'var(--blue)';document.getElementById('remaining').textContent=25-state.revealed;document.getElementById('redScore').textContent=state.red;document.getElementById('blueScore').textContent=state.blue;document.getElementById('clueWord').textContent=state.clue.word;document.getElementById('clueNum').textContent=state.clue.num>0?state.clue.num:'';document.getElementById('clueTurn').textContent=state.guesses>0?'剩余次数: '+state.guesses:'等待出题者...';}
@@ -233,7 +222,7 @@ function closeSettings(){document.getElementById('settingsModal').classList.remo
 function handleTopicChange(){const v=document.getElementById('aiTopic').value;document.getElementById('customTopicGroup').style.display=v==='custom'?'block':'none';if(presets[v]){aiWords=presets[v];toast('已选择: '+v);}}
 function changeTheme(t){currentTheme=t;document.body.style.background=themes[t];}
 function saveSettings(){save();closeSettings();}
-async function generateWords(){const topic=document.getElementById('aiTopic').value;const custom=document.getElementById('customTopic').value;let words=[];if(topic==='custom'){if(!custom){toast('请输入主题');return;}document.getElementById('genBtn').innerHTML='生成中...';document.getElementById('genBtn').disabled=true;try{const res=await fetch('/api/generate-words',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:custom})});const data=await res.json();if(data.words&&data.words.length>0){words=data.words;}else{toast('生成失败: '+(data.error||'未知错误'));}}catch(e){toast('请求失败: '+e.message);}}else if(presets[topic]){words=presets[topic];}else{toast('请选择主题');return;}if(words.length>=25){aiWords=words.slice(0,25);customWords=aiWords;useCustom=true;document.getElementById('wordPreview').value=aiWords.join('\n');document.getElementById('wordCount').textContent=aiWords.length;save();closeAIModal();toast('生成成功!');}else{toast('需要25个以上词语');}document.getElementById('genBtn').innerHTML='生成';document.getElementById('genBtn').disabled=false;}
+async function generateWords(){const topic=document.getElementById('aiTopic').value;const custom=document.getElementById('customTopic').value;let words=[];if(topic==='custom'){if(!custom){toast('请输入主题');return;}document.getElementById('genBtn').innerHTML='生成中...';document.getElementById('genBtn').disabled=true;try{const res=await fetch('/api/generate-words',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({topic:custom})});const data=await res.json();if(data.words&&data.words.length>0){words=data.words;}else{toast('生成失败: '+(data.error||'未知错误'));}}catch(e){toast('请求失败: '+e.message);}}else if(presets[topic]){words=presets[topic];}else{toast('请选择主题');return;}if(words.length>=25){aiWords=words.slice(0,25);document.getElementById('wordPreview').value=aiWords.join('\n');document.getElementById('wordCount').textContent=aiWords.length;save();closeAIModal();newGame(true);}else{toast('需要25个以上词语');}document.getElementById('genBtn').innerHTML='生成';document.getElementById('genBtn').disabled=false;}
 load();newGame();
 </script>
 </body>
