@@ -6,7 +6,7 @@
 
 ## 服务器配置
 
-- **项目路径**: `/root/project/codenames-game/src/`
+- **项目路径**: `/var/www/codenames-game/`
 - **游戏文件**: `game.html` (主要), `index.html`, `words.js`
 - **Nginx 配置**: `/etc/nginx/conf.d/tuteng3.site.conf`
 
@@ -21,14 +21,14 @@
 cd /Users/easonlv/Code/web/actionSecret
 
 # 上传 src 目录下的文件
-scp -r src/. root@119.29.178.222:/root/project/codenames-game/src/
+scp -r src/. root@119.29.178.222:/var/www/codenames-game/
 ```
 
 #### 步骤 2: 验证部署
 
 ```bash
 # SSH 到服务器验证
-ssh root@119.29.178.222 "ls -la /root/project/codenames-game/src/game.html"
+ssh root@119.29.178.222 "ls -la /var/www/codenames-game/game.html"
 ```
 
 ## Nginx 配置
@@ -37,7 +37,7 @@ ssh root@119.29.178.222 "ls -la /root/project/codenames-game/src/game.html"
 
 ```nginx
 location = /game.html {
-    alias /root/project/codenames-game/src/game.html;
+    alias /var/www/codenames-game/game.html;
 }
 ```
 
@@ -54,10 +54,10 @@ ssh root@119.29.178.222 "nginx -s reload"
 ```bash
 # 1. 本地上传代码
 cd /Users/easonlv/Code/web/actionSecret
-scp -r src/. root@119.29.178.222:/root/project/codenames-game/src/
+scp -r src/. root@119.29.178.222:/var/www/codenames-game/
 
 # 2. SSH 到服务器验证
-ssh root@119.29.178.222 "ls -la /root/project/codenames-game/src/game.html"
+ssh root@119.29.178.222 "ls -la /var/www/codenames-game/game.html"
 
 # 3. 重启 Nginx（如需要）
 ssh root@119.29.178.222 "nginx -s reload"
