@@ -21,3 +21,7 @@ Thumbs.db
 # Go binaries
 backend/codenames-backend
 backend/codenames-backend-linux
+
+.env
+*.env
+*.mybackup
