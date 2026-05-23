@@ -2,13 +2,13 @@
 
 ## 访问地址
 
-- **游戏页面**: https://tuteng3.site/game.html
+- **游戏页面**: https://your-domain.com/game.html
 
 ## 服务器配置
 
-- **项目路径**: `/root/project/codenames-game/src/`
+- **项目路径**: `<YOUR_PROJECT_PATH>/codenames-game/src/`
 - **游戏文件**: `game.html` (主要), `index.html`, `words.js`
-- **Nginx 配置**: `/etc/nginx/conf.d/tuteng3.site.conf`
+- **Nginx 配置**: `<YOUR_NGINX_CONF_PATH>`
 
 ## 部署步骤
 
@@ -18,26 +18,26 @@
 
 ```bash
 # 在本地项目目录执行
-cd /Users/easonlv/Code/web/actionSecret
+cd /path/to/your/project
 
-# 上传 src 目录下的文件
-scp -r src/. root@119.29.178.222:/root/project/codenames-game/src/
+# 上传 src 目录下的文件到服务器
+scp -r src/. user@<YOUR_SERVER_IP>:<YOUR_PROJECT_PATH>/src/
 ```
 
 #### 步骤 2: 验证部署
 
 ```bash
 # SSH 到服务器验证
-ssh root@119.29.178.222 "ls -la /root/project/codenames-game/src/game.html"
+ssh user@<YOUR_SERVER_IP> "ls -la <YOUR_PROJECT_PATH>/src/game.html"
 ```
 
 ## Nginx 配置
 
-已在 `/etc/nginx/conf.d/tuteng3.site.conf` 中配置：
+在 Nginx 配置文件中配置：
 
 ```nginx
 location = /game.html {
-    alias /root/project/codenames-game/src/game.html;
+    alias <YOUR_PROJECT_PATH>/src/game.html;
 }
 ```
 
@@ -46,21 +46,21 @@ location = /game.html {
 ### 重启 Nginx
 
 ```bash
-ssh root@119.29.178.222 "nginx -s reload"
+ssh user@<YOUR_SERVER_IP> "nginx -s reload"
 ```
 
 ### 完整更新流程
 
 ```bash
 # 1. 本地上传代码
-cd /Users/easonlv/Code/web/actionSecret
-scp -r src/. root@119.29.178.222:/root/project/codenames-game/src/
+cd /path/to/your/project
+scp -r src/. user@<YOUR_SERVER_IP>:<YOUR_PROJECT_PATH>/src/
 
 # 2. SSH 到服务器验证
-ssh root@119.29.178.222 "ls -la /root/project/codenames-game/src/game.html"
+ssh user@<YOUR_SERVER_IP> "ls -la <YOUR_PROJECT_PATH>/src/game.html"
 
 # 3. 重启 Nginx（如需要）
-ssh root@119.29.178.222 "nginx -s reload"
+ssh user@<YOUR_SERVER_IP> "nginx -s reload"
 ```
 
 ## 项目结构
