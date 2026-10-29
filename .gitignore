@@ -22,6 +22,9 @@ Thumbs.db
 backend/codenames-backend
 backend/codenames-backend-linux
 
+# 含密钥的配置文件（勿提交）
+backend/config.json
+
 .env
 *.env
 *.mybackup
