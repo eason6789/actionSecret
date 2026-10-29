@@ -18,7 +18,7 @@ A web-based word-guessing party game with two-player versus mode and built-in AI
 ### Features
 
 - 🎮 Classic CodeNames gameplay, red vs blue two-player versus
-- 🤖 AI-powered word bank generation (MiniMax M2.7 model)
+- 🤖 AI-powered word bank generation (DeepSeek model)
 - 📋 15+ preset theme word banks (travel, food, tech, relationships, etc.)
 - ✏️ Custom topic support with real-time AI word generation
 - 🎨 5 theme color schemes (Dark, Sunset, Forest, Pink, Ocean)
@@ -49,7 +49,7 @@ A web-based word-guessing party game with two-player versus mode and built-in AI
 
 **Backend (AI word generation)**
 - Go, standard library only
-- MiniMax API for topic-based word generation
+- DeepSeek API for topic-based word generation
 - Sliding window rate limiting (5 req/min per IP)
 - CORS support
 
@@ -61,7 +61,7 @@ A web-based word-guessing party game with two-player versus mode and built-in AI
 
 ```bash
 cd backend
-export MINIMAX_API_KEY="your-api-key"
+export DEEPSEEK_API_KEY="your-api-key"
 go run main.go
 # Or: go build -o codenames-backend . && ./codenames-backend
 ```
@@ -124,7 +124,7 @@ MIT
 ### 功能特性
 
 - 🎮 红蓝双人对战，经典猜词玩法
-- 🤖 AI 智能词库生成（基于 MiniMax M2.7 大模型）
+- 🤖 AI 智能词库生成（基于 DeepSeek 大模型）
 - 📋 15+ 预设主题词库（旅行、美食、科技、亲密关系等）
 - ✏️ 支持自定义主题，AI 实时生成相关词语
 - 🎨 5 种主题配色（深色、日落、森林、粉色、海洋）
@@ -155,7 +155,7 @@ MIT
 
 **后端 (AI 词库生成)**
 - Go 语言编写，纯标准库实现
-- 调用 MiniMax API 生成主题相关中文词语
+- 调用 DeepSeek API 生成主题相关中文词语
 - 滑动窗口限流（单 IP 每 60 秒最多 5 次）
 - CORS 支持
 
@@ -167,7 +167,7 @@ MIT
 
 ```bash
 cd backend
-export MINIMAX_API_KEY="your-api-key"
+export DEEPSEEK_API_KEY="your-api-key"
 go run main.go
 # 或编译：go build -o codenames-backend . && ./codenames-backend
 ```

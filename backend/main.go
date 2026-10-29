@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/json"
 	"fmt"
+	"io"
 	"log"
 	"net"
 	"net/http"
@@ -14,13 +15,44 @@ import (
 )
 
 const (
-	listenAddr    = ":8082"
-	minimaxURL    = "https://api.minimax.chat/v1/chat/completions"
-	model         = "MiniMax-M2.7"
-	maxTokens     = 2000
-	maxPerMinute  = 5
-	windowSeconds = 60
+	listenAddr     = ":8082"
+	defaultBaseURL = "https://api.deepseek.com/chat/completions"
+	defaultModel   = "deepseek-chat"
+	maxTokens      = 2000
+	maxPerMinute   = 5
+	windowSeconds  = 60
 )
+
+// Config 从 config.json 读取（路径可用 CONFIG_PATH 覆盖），未配置时回退到 DEEPSEEK_API_KEY 环境变量。
+type Config struct {
+	DeepSeekAPIKey string `json:"deepseek_api_key"`
+	Model          string `json:"model"`
+	BaseURL        string `json:"base_url"`
+}
+
+func loadConfig() Config {
+	cfg := Config{
+		Model:   defaultModel,
+		BaseURL: defaultBaseURL,
+	}
+	path := os.Getenv("CONFIG_PATH")
+	if path == "" {
+		path = "config.json"
+	}
+	if b, err := os.ReadFile(path); err == nil {
+		_ = json.Unmarshal(b, &cfg)
+	}
+	if cfg.DeepSeekAPIKey == "" {
+		cfg.DeepSeekAPIKey = os.Getenv("DEEPSEEK_API_KEY")
+	}
+	if cfg.Model == "" {
+		cfg.Model = defaultModel
+	}
+	if cfg.BaseURL == "" {
+		cfg.BaseURL = defaultBaseURL
+	}
+	return cfg
+}
 
 type GenerateRequest struct {
 	Topic string `json:"topic"`
@@ -31,29 +63,23 @@ type GenerateResponse struct {
 	Error  string   `json:"error,omitempty"`
 }
 
-type MinimaxMessage struct {
+type ChatMessage struct {
 	Role    string `json:"role"`
 	Content string `json:"content"`
 }
 
-type MinimaxRequest struct {
-	Model    string            `json:"model"`
-	Messages []MinimaxMessage  `json:"messages"`
-	MaxTokens int              `json:"max_tokens"`
+type ChatRequest struct {
+	Model     string        `json:"model"`
+	Messages  []ChatMessage `json:"messages"`
+	MaxTokens int           `json:"max_tokens"`
 }
 
-type MinimaxChoice struct {
-	Message struct {
-		Content string `json:"content"`
-	} `json:"message"`
-}
-
-type MinimaxResponse struct {
-	Choices []MinimaxChoice `json:"choices"`
-	BaseResp struct {
-		StatusCode int    `json:"status_code"`
-		StatusMsg  string `json:"status_msg"`
-	} `json:"base_resp"`
+type ChatResponse struct {
+	Choices []struct {
+		Message struct {
+			Content string `json:"content"`
+		} `json:"message"`
+	} `json:"choices"`
 }
 
 // Simple sliding-window rate limiter per IP
@@ -167,15 +193,15 @@ func generateWordsHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	apiKey := os.Getenv("MINIMAX_API_KEY")
-	if apiKey == "" {
+	cfg := loadConfig()
+	if cfg.DeepSeekAPIKey == "" {
 		writeJSON(w, http.StatusInternalServerError, GenerateResponse{Error: "server not configured"})
 		return
 	}
 
-	words, err := callMiniMax(apiKey, topic)
+	words, err := callDeepSeek(cfg, topic)
 	if err != nil {
-		log.Printf("MiniMax error: %v", err)
+		log.Printf("DeepSeek error: %v", err)
 		writeJSON(w, http.StatusInternalServerError, GenerateResponse{Error: "生成失败，请重试"})
 		return
 	}
@@ -183,10 +209,10 @@ func generateWordsHandler(w http.ResponseWriter, r *http.Request) {
 	writeJSON(w, http.StatusOK, GenerateResponse{Words: words})
 }
 
-func callMiniMax(apiKey, topic string) ([]string, error) {
-	body := MinimaxRequest{
-		Model: model,
-		Messages: []MinimaxMessage{
+func callDeepSeek(cfg Config, topic string) ([]string, error) {
+	body := ChatRequest{
+		Model: cfg.Model,
+		Messages: []ChatMessage{
 			{Role: "user", Content: "Generate 25 Chinese words related to \"" + topic + "\" for a board game. One word per line, 1-4 characters each. Output only the words, no numbering, no explanation."},
 		},
 		MaxTokens: maxTokens,
@@ -197,12 +223,12 @@ func callMiniMax(apiKey, topic string) ([]string, error) {
 		return nil, err
 	}
 
-	httpReq, err := http.NewRequest("POST", minimaxURL, bytes.NewReader(b))
+	httpReq, err := http.NewRequest("POST", cfg.BaseURL, bytes.NewReader(b))
 	if err != nil {
 		return nil, err
 	}
 	httpReq.Header.Set("Content-Type", "application/json")
-	httpReq.Header.Set("Authorization", "Bearer "+apiKey)
+	httpReq.Header.Set("Authorization", "Bearer "+cfg.DeepSeekAPIKey)
 
 	client := &http.Client{Timeout: 120 * time.Second}
 	resp, err := client.Do(httpReq)
@@ -211,17 +237,18 @@ func callMiniMax(apiKey, topic string) ([]string, error) {
 	}
 	defer resp.Body.Close()
 
-	var mr MinimaxResponse
+	if resp.StatusCode != http.StatusOK {
+		raw, _ := io.ReadAll(resp.Body)
+		return nil, fmt.Errorf("DeepSeek API error %d: %s", resp.StatusCode, string(raw))
+	}
+
+	var mr ChatResponse
 	if err := json.NewDecoder(resp.Body).Decode(&mr); err != nil {
 		return nil, err
 	}
 
-	if mr.BaseResp.StatusCode != 0 {
-		return nil, fmt.Errorf("MiniMax API error: %s", mr.BaseResp.StatusMsg)
-	}
-
 	if len(mr.Choices) == 0 || mr.Choices[0].Message.Content == "" {
-		return nil, fmt.Errorf("empty response from MiniMax")
+		return nil, fmt.Errorf("empty response from DeepSeek")
 	}
 
 	content := stripThinking(mr.Choices[0].Message.Content)
@@ -248,7 +275,7 @@ func callMiniMax(apiKey, topic string) ([]string, error) {
 }
 
 func stripThinking(s string) string {
-	// Remove  ...  blocks from MiniMax thinking output
+	// Remove  ...  blocks from DeepSeek thinking output
 	for {
 		start := strings.Index(s, "<think>")
 		if start == -1 {

@@ -108,14 +108,14 @@ Set in the systemd unit file (`/etc/systemd/system/codenames-backend.service`):
 
 | Variable | Description |
 |----------|-------------|
-| `MINIMAX_API_KEY` | MiniMax API key for word generation |
+| `DEEPSEEK_API_KEY` | DeepSeek API key for word generation |
 | `PORT` | Listen port (default: 8082) |
 
 ### Dependencies
 
 - Nginx
 - Go runtime (backend binary is statically linked, no runtime needed on server)
-- MiniMax API account (for AI word generation)
+- DeepSeek API account (for AI word generation)
 
 ---
 
@@ -223,11 +223,11 @@ location /api/generate-words {
 
 | 变量 | 说明 |
 |------|------|
-| `MINIMAX_API_KEY` | MiniMax API 密钥，用于词库生成 |
+| `DEEPSEEK_API_KEY` | DeepSeek API 密钥，用于词库生成 |
 | `PORT` | 监听端口（默认: 8082） |
 
 ### 依赖
 
 - Nginx
 - Go 运行时（后端二进制为静态链接，服务器端无需 Go 运行时）
-- MiniMax API 账号（用于 AI 词库生成）
+- DeepSeek API 账号（用于 AI 词库生成）
