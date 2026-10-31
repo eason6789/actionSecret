@@ -11,8 +11,6 @@
         body{font-family:'Inter','Noto Sans SC',sans-serif;background:var(--bg);min-height:100vh;padding:20px;color:var(--text)}
         .container{max-width:700px;margin:0 auto}
         h1{text-align:center;font-size:1.8rem;font-weight:700;margin-bottom:5px;letter-spacing:2px}
-        .back{position:absolute;top:20px;left:20px;color:var(--dim);text-decoration:none;font-size:14px}
-        .back:hover{color:var(--primary)}
         .mode-select{display:flex;justify-content:center;gap:10px;margin-bottom:15px}
         .mode-btn{padding:10px 24px;border:2px solid var(--border);border-radius:24px;background:var(--glass);color:var(--dim);cursor:pointer;transition:0.3s;font-size:14px}
         .mode-btn.active{border-color:var(--primary);color:var(--primary);background:rgba(0,212,255,0.1)}
@@ -76,7 +74,6 @@
     </style>
 </head>
 <body>
-<a href="games.html" class="back">返回</a>
 <div class="container">
     <h1>行动代号</h1>
     <div class="mode-select">
@@ -111,6 +108,11 @@
         <button class="btn btn-success" onclick="openAIWordsModal()">AI词库</button>
         <button class="btn btn-secondary" onclick="toggleMaster()">密码本</button>
         <button class="btn btn-secondary" onclick="openSettings()">设置</button>
+    </div>
+    <div style="text-align:center;margin-top:24px;padding-top:16px;border-top:1px solid var(--border);font-size:13px;color:var(--dim);">
+        <a href="http://tuteng3.site/" target="_blank" rel="noopener" style="color:var(--primary);text-decoration:none;font-weight:600;">✉ 联系作者</a>
+        <span style="margin:0 8px;opacity:0.4;">·</span>
+        <span>创想世界</span>
     </div>
 </div>
 <div class="modal" id="masterModal">
